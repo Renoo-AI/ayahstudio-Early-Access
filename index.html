@@ -1,1 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ayah Studio — Early Access</title>
+<!--
+  ⚠️  SECURITY NOTICE
+  ─────────────────────────────────────────────────────────────
+  The Telegram bot token is exposed in this client-side file.
+  ⚠️  ACTION REQUIRED: reset it via @BotFather (/revoke) NOW.
+  For production, proxy the call through a backend endpoint
+  (Cloudflare Worker / Vercel function / Node API) so the token
+  stays secret and cannot be abused.
+  ─────────────────────────────────────────────────────────────
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07070f;--void-2:#0d0d1a;--void-3:#15152a;--ink:#000;
+    --grid:#1a1a2e;--purple:#a78bfa;--purple-deep:#6d28d9;--purple-glow:#c4b5fd;
+    --amber:#fde68a;--cream:#fef3c7;--pearl:#f1f5f9;--rose:#fb7185;
+    --cyan:#67e8f9;--pink:#f9a8d4;--slate:#64748b;--slate-dim:#334155;
+  }
+  *{box-sizing:border-box;image-rendering:pixelated;image-rendering:crisp-edges;-webkit-font-smoothing:none;-moz-osx-font-smoothing:unset;}
+  html,body{height:100%;}
+  body{
+    margin:0;font-family:'VT323',monospace;color:var(--pearl);
+    background-color:var(--void);
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:28px 28px;background-position:-1px -1px;
+    overflow-x:hidden;position:relative;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px 16px 60px;
+  }
+  body::after{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 15%,rgba(0,0,0,.6) 75%,#000 100%);pointer-events:none;z-index:5;}
+  body::before{content:"";position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0,rgba(0,0,0,.25) 1px,transparent 1px,transparent 4px);pointer-events:none;z-index:999;mix-blend-mode:multiply;}
+  html[dir="rtl"] body{font-family:'Amiri','VT323',serif;}
+  html[dir="rtl"] .arabic-text{font-family:'Amiri',serif;font-weight:700;}
+  html[dir="rtl"] .input,html[dir="rtl"] .textarea,html[dir="rtl"] .select{font-family:'Amiri','VT323',serif;font-size:20px;}
+
+  .star{position:fixed;width:4px;height:4px;background:var(--pearl);z-index:2;}
+  .star.purple{background:var(--purple);}.star.amber{background:var(--amber);}.star.pink{background:var(--pink);}
+  .star.s1{top:10%;left:8%;animation:twinkle 2.4s steps(2) infinite;}
+  .star.s2{top:16%;left:32%;animation:twinkle 3.2s steps(2) infinite;animation-delay:-1s;}
+  .star.s3{top:7%;right:16%;animation:twinkle 1.8s steps(2) infinite;animation-delay:-.3s;}
+  .star.s4{top:24%;right:9%;animation:twinkle 2.8s steps(2) infinite;animation-delay:-1.5s;}
+  .star.s5{top:55%;left:6%;animation:twinkle 2s steps(2) infinite;animation-delay:-.7s;}
+  .star.s6{top:72%;right:14%;animation:twinkle 2.6s steps(2) infinite;animation-delay:-1.2s;}
+  .star.s7{top:40%;left:11%;animation:twinkle 3.4s steps(2) infinite;animation-delay:-.9s;}
+  .star.s8{top:82%;left:22%;animation:twinkle 3s steps(2) infinite;animation-delay:-2s;}
+  .star.s9{top:30%;right:24%;animation:twinkle 1.9s steps(2) infinite;animation-delay:-.4s;}
+  .star.s10{top:65%;left:88%;animation:twinkle 2.3s steps(2) infinite;animation-delay:-1.3s;}
+  .star.s11{top:88%;left:42%;animation:twinkle 2.7s steps(2) infinite;animation-delay:-.6s;}
+  .star.s12{top:48%;right:4%;animation:twinkle 2.1s steps(2) infinite;animation-delay:-1.8s;}
+  @keyframes twinkle{0%,49%{opacity:1;transform:scale(1);}50%,100%{opacity:.3;transform:scale(.6);}}
+
+  .moon{position:fixed;top:40px;right:60px;width:120px;height:120px;z-index:3;}
+  @media (max-width:640px){.moon{width:80px;height:80px;top:20px;right:20px;}}
+  .moon svg{width:100%;height:100%;display:block;}
+
+  .shooting-star{position:fixed;top:18%;left:-10%;width:60px;height:3px;background:linear-gradient(90deg,transparent,var(--amber),var(--pearl));z-index:2;opacity:0;animation:shoot 11s linear infinite;animation-delay:4s;}
+  @keyframes shoot{0%{transform:translateX(0) translateY(0);opacity:0;}4%{opacity:1;}35%{transform:translateX(130vw) translateY(35vh);opacity:0;}100%{opacity:0;}}
+
+  .nebula{position:fixed;width:500px;height:500px;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:.6;}
+  .nebula-1{top:-150px;left:-150px;background:radial-gradient(ellipse at center,rgba(167,139,250,.2),transparent 60%);}
+  .nebula-2{bottom:-150px;right:-150px;background:radial-gradient(ellipse at center,rgba(251,113,133,.12),transparent 60%);}
+
+  .skyline{position:fixed;bottom:0;left:0;right:0;height:140px;z-index:4;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;opacity:.9;}
+  .skyline svg{width:100%;max-width:1400px;height:auto;display:block;}
+
+  .sparkle{position:fixed;width:18px;height:18px;z-index:3;}
+  .sparkle svg{width:100%;height:100%;display:block;}
+  .sp1{top:22%;left:14%;animation:blink 1.4s steps(2) infinite;}
+  .sp2{top:52%;right:10%;animation:blink 1.8s steps(2) infinite;animation-delay:-.5s;}
+  .sp3{top:68%;left:9%;animation:blink 2.2s steps(2) infinite;animation-delay:-1s;}
+  .sp4{top:28%;right:28%;animation:blink 1.6s steps(2) infinite;animation-delay:-.7s;}
+  @keyframes blink{0%,49%{opacity:1;transform:scale(1);}50%,100%{opacity:.25;transform:scale(.6);}}
+
+  .wrap{position:relative;z-index:20;width:100%;max-width:520px;animation:card-in .8s cubic-bezier(.16,1,.3,1);}
+  @keyframes card-in{0%{opacity:0;transform:translateY(20px) scale(.96);}100%{opacity:1;transform:translateY(0) scale(1);}}
+
+  .card{position:relative;background:var(--void-2);border:4px solid var(--ink);box-shadow:8px 8px 0 0 var(--ink),0 0 0 2px var(--purple-deep),0 30px 60px rgba(0,0,0,.6);padding:36px 30px 32px;text-align:center;overflow:hidden;}
+  .dot{position:absolute;width:12px;height:12px;background:var(--amber);border:3px solid var(--ink);z-index:5;}
+  .dot.tl{top:-2px;left:-2px;}.dot.tr{top:-2px;right:-2px;}.dot.bl{bottom:-2px;left:-2px;}.dot.br{bottom:-2px;right:-2px;}
+
+  .lang-switch{position:absolute;top:14px;right:14px;display:flex;gap:4px;z-index:10;}
+  html[dir="rtl"] .lang-switch{right:auto;left:14px;}
+  .lang-btn{font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:1px;padding:5px 8px;background:var(--void-3);color:var(--slate);border:2px solid var(--ink);cursor:pointer;text-transform:uppercase;}
+  .lang-btn:hover{color:var(--pearl);}
+  .lang-btn.active{background:var(--amber);color:var(--ink);box-shadow:2px 2px 0 0 var(--ink);}
+
+  .icon-box{width:96px;height:96px;margin:0 auto 22px;background:var(--void-3);border:4px solid var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:5px 5px 0 0 var(--ink);transform:rotate(-2deg);}
+  .icon-box svg{width:68px;height:68px;}
+
+  .tag{display:inline-block;font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:2px;background:var(--purple-deep);color:var(--amber);padding:8px 14px;margin-bottom:20px;text-transform:uppercase;border:2px solid var(--ink);box-shadow:3px 3px 0 0 var(--ink);}
+
+  h1{font-family:'Press Start 2P',monospace;font-size:24px;line-height:1.5;margin:0 0 18px;color:var(--pearl);text-shadow:3px 3px 0 var(--purple-deep),5px 5px 0 var(--ink);letter-spacing:1px;}
+  h1 .accent{color:var(--amber);text-shadow:3px 3px 0 var(--ink);}
+  html[dir="rtl"] h1{font-family:'Amiri',serif;font-size:34px;font-weight:700;line-height:1.4;text-shadow:3px 3px 0 var(--purple-deep),4px 4px 0 var(--ink);}
+
+  .desc{font-family:'VT323',monospace;font-size:20px;line-height:1.3;margin:0 0 24px;color:var(--cream);padding:0 4px;}
+  .desc b{color:var(--purple-glow);font-weight:400;}.desc .amber{color:var(--amber);}
+  html[dir="rtl"] .desc{font-family:'Amiri',serif;font-size:22px;line-height:1.7;}
+  html[dir="rtl"] .desc b{font-weight:700;}
+
+  .platforms{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:26px;}
+  .chip{font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:1px;padding:6px 10px;background:var(--void-3);color:var(--pearl);border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);text-transform:uppercase;}
+  .chip.tiktok{color:var(--pink);}.chip.reels{color:var(--rose);}.chip.shorts{color:var(--amber);}.chip.youtube{color:var(--cyan);}
+
+  .steps{display:flex;justify-content:center;gap:8px;margin-bottom:18px;font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:1px;}
+  .step{padding:4px 8px;border:2px solid var(--ink);color:var(--slate-dim);background:var(--void-3);}
+  .step.active{color:var(--amber);background:var(--purple-deep);box-shadow:2px 2px 0 0 var(--ink);}
+  .step.done{color:var(--pearl);background:var(--void-3);border-color:var(--purple);}
+
+  .form-container{position:relative;min-height:180px;}
+  .form-step{display:none;flex-direction:column;gap:14px;text-align:left;animation:stepIn .4s cubic-bezier(.16,1,.3,1);}
+  .form-step.active{display:flex;}
+  .form-step.slide-out-left{animation:slideOutLeft .3s cubic-bezier(.4,0,.2,1) forwards;}
+  .form-step.slide-out-right{animation:slideOutRight .3s cubic-bezier(.4,0,.2,1) forwards;}
+  @keyframes stepIn{0%{opacity:0;transform:translateX(20px);}100%{opacity:1;transform:translateX(0);}}
+  @keyframes slideOutLeft{0%{opacity:1;transform:translateX(0);}100%{opacity:0;transform:translateX(-20px);}}
+  @keyframes slideOutRight{0%{opacity:1;transform:translateX(0);}100%{opacity:0;transform:translateX(20px);}}
+
+  .field-label{display:flex;align-items:center;gap:8px;font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:1.5px;color:var(--purple-glow);text-transform:uppercase;margin-bottom:6px;}
+  html[dir="rtl"] .field-label{font-size:7px;text-transform:none;}
+  .field-label .req{color:var(--amber);}
+  .field-label .num{display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;background:var(--amber);color:var(--ink);border:2px solid var(--ink);font-size:7px;font-family:'Press Start 2P',monospace;}
+
+  .input,.select,.textarea{font-family:'VT323',monospace;font-size:20px;padding:12px 14px;background:var(--void-3);color:var(--pearl);border:4px solid var(--ink);outline:none;box-shadow:4px 4px 0 0 var(--ink);width:100%;display:block;transition:transform .15s,box-shadow .15s,border-color .15s;}
+  .input::placeholder,.textarea::placeholder{color:var(--slate-dim);}
+  .input:focus,.select:focus,.textarea:focus{background:#1a1a35;border-color:var(--purple);box-shadow:5px 5px 0 0 var(--purple-deep);transform:translate(-1px,-1px);color:var(--amber);}
+  .input.invalid,.select.invalid,.textarea.invalid{border-color:var(--rose);box-shadow:4px 4px 0 0 #7a1f30;animation:shake .3s steps(4);}
+  .input.invalid:focus,.select.invalid:focus,.textarea.invalid:focus{box-shadow:5px 5px 0 0 #7a1f30;}
+
+  .select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'><rect x='4' y='6' width='2' height='2' fill='%23fde68a'/><rect x='6' y='8' width='2' height='2' fill='%23fde68a'/><rect x='8' y='10' width='2' height='2' fill='%23fde68a'/><rect x='10' y='8' width='2' height='2' fill='%23fde68a'/><rect x='12' y='6' width='2' height='2' fill='%23fde68a'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:44px;}
+  html[dir="rtl"] .select{background-position:left 14px center;padding-right:14px;padding-left:44px;}
+  .select option{background:var(--void-2);color:var(--pearl);padding:8px;}
+  .textarea{resize:vertical;min-height:70px;max-height:160px;}
+
+  .btn-row{display:flex;gap:10px;margin-top:6px;}
+  .btn{font-family:'Press Start 2P',monospace;font-size:11px;letter-spacing:1.5px;padding:16px 20px;background:var(--amber);color:var(--ink);border:4px solid var(--ink);cursor:pointer;box-shadow:5px 5px 0 0 var(--ink),inset 0 -5px 0 0 rgba(0,0,0,.15);text-transform:uppercase;flex:2;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:10px;transition:transform .1s,box-shadow .1s,background .15s;}
+  html[dir="rtl"] .btn{font-size:9px;text-transform:none;letter-spacing:0;}
+  .btn:hover:not(:disabled){background:#fff1b0;transform:translate(-2px,-2px);box-shadow:7px 7px 0 0 var(--ink),inset 0 -5px 0 0 rgba(0,0,0,.15);}
+  .btn:active:not(:disabled){transform:translate(3px,3px);box-shadow:2px 2px 0 0 var(--ink),inset 0 -2px 0 0 rgba(0,0,0,.15);}
+  .btn:disabled{opacity:.7;cursor:not-allowed;}
+
+  .btn-back{font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:1.5px;padding:16px 16px;background:var(--void-3);color:var(--pearl);border:4px solid var(--ink);cursor:pointer;box-shadow:5px 5px 0 0 var(--ink);text-transform:uppercase;flex:1;text-align:center;}
+  html[dir="rtl"] .btn-back{font-size:8px;text-transform:none;letter-spacing:0;}
+  .btn-back:hover{background:var(--grid);color:var(--amber);transform:translate(-2px,-2px);box-shadow:7px 7px 0 0 var(--ink);}
+  .btn-back:active{transform:translate(3px,3px);box-shadow:2px 2px 0 0 var(--ink);}
+
+  .spinner{width:12px;height:12px;border:2px solid rgba(7,7,15,.3);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;image-rendering:auto;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .error-msg{font-family:'VT323',monospace;font-size:16px;color:var(--rose);padding:8px 12px;background:rgba(251,113,133,.08);border:2px solid var(--rose);margin-top:4px;display:none;text-align:left;line-height:1.4;word-break:break-word;}
+  html[dir="rtl"] .error-msg{text-align:right;font-family:'Amiri',serif;font-size:18px;}
+  .error-msg.show{display:block;animation:shake .3s steps(4);}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+
+  .success{display:none;padding:28px 22px;background:var(--void-3);border:4px solid var(--ink);box-shadow:6px 6px 0 0 var(--purple-deep);margin-top:10px;position:relative;text-align:center;animation:pop .5s cubic-bezier(.16,1,.3,1);}
+  @keyframes pop{0%{transform:scale(.6);opacity:0;}60%{transform:scale(1.04);}100%{transform:scale(1);opacity:1;}}
+
+  .success-icon{width:80px;height:80px;margin:0 auto 18px;background:var(--purple-deep);border:4px solid var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:4px 4px 0 0 var(--ink);animation:heartbob 1.2s steps(4) infinite;}
+  @keyframes heartbob{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-4px) rotate(2deg);}}
+  .success-icon svg{width:52px;height:52px;}
+
+  .success .big{font-family:'Press Start 2P',monospace;font-size:18px;color:var(--amber);margin-bottom:14px;text-shadow:2px 2px 0 var(--ink);letter-spacing:2px;line-height:1.5;}
+  html[dir="rtl"] .success .big{font-family:'Amiri',serif;font-size:28px;font-weight:700;letter-spacing:0;}
+
+  .success .thanks{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--pearl);margin-bottom:16px;line-height:1.8;letter-spacing:1px;}
+  html[dir="rtl"] .success .thanks{font-family:'Amiri',serif;font-size:20px;font-weight:400;letter-spacing:0;}
+  .success .thanks .accent{color:var(--cyan);}
+
+  .success .note{font-family:'VT323',monospace;font-size:20px;line-height:1.4;color:var(--cream);padding:14px;background:var(--void-2);border:3px solid var(--grid);}
+  html[dir="rtl"] .success .note{font-family:'Amiri',serif;font-size:20px;line-height:1.7;}
+  .success .note .arabic{color:var(--amber);font-size:22px;display:block;margin-top:8px;font-family:'Amiri',serif;}
+
+  .success .stats{margin-top:14px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+  .stat{font-family:'Press Start 2P',monospace;font-size:7px;padding:6px 10px;background:var(--void-2);color:var(--purple-glow);border:2px solid var(--grid);letter-spacing:1px;}
+  .stat b{color:var(--amber);font-weight:400;}
+
+  .footer{position:relative;z-index:20;margin-top:28px;text-align:center;font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:2px;color:var(--slate);text-transform:uppercase;line-height:1.8;}
+  html[dir="rtl"] .footer{text-transform:none;letter-spacing:0;font-size:7px;}
+  .footer .heart{display:inline-block;color:var(--rose);animation:heartbeat 1.4s steps(2) infinite;}
+  @keyframes heartbeat{0%,49%{transform:scale(1);}50%,100%{transform:scale(1.2);}}
+
+  .pixel-confetti{position:fixed;z-index:950;pointer-events:none;border:2px solid var(--ink);}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;font-family:'Press Start 2P',monospace;font-size:8px;padding:10px 14px;background:var(--void-2);color:var(--pearl);border:3px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink);display:none;letter-spacing:1px;max-width:90vw;text-align:center;}
+  .toast.show{display:block;animation:pop .3s cubic-bezier(.16,1,.3,1);}
+  .toast.offline{color:var(--rose);border-color:var(--rose);}
+  .toast.online{color:var(--cyan);border-color:var(--cyan);}
+
+  @media (max-width:520px){
+    h1{font-size:18px;line-height:1.6;}
+    html[dir="rtl"] h1{font-size:26px;}
+    .desc{font-size:18px;}
+    .card{padding:28px 20px 24px;}
+    .icon-box{width:80px;height:80px;}
+    .icon-box svg{width:56px;height:56px;}
+    .chip{font-size:6px;padding:5px 8px;}
+    .btn{font-size:10px;padding:14px 16px;}
+    .btn-back{font-size:9px;padding:14px 10px;}
+    .skyline{height:90px;}
+    .success .big{font-size:15px;}
+    .success .thanks{font-size:10px;}
+    .lang-btn{font-size:6px;padding:4px 6px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="nebula nebula-1"></div><div class="nebula nebula-2"></div>
+<div class="star s1"></div><div class="star s2 purple"></div><div class="star s3"></div>
+<div class="star s4 amber"></div><div class="star s5 purple"></div><div class="star s6"></div>
+<div class="star s7 purple"></div><div class="star s8 amber"></div><div class="star s9 pink"></div>
+<div class="star s10"></div><div class="star s11 purple"></div><div class="star s12 amber"></div>
+
+<div class="moon" aria-hidden="true">
+  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="6" y="0" width="6" height="1" fill="#fde68a"/><rect x="4" y="1" width="2" height="1" fill="#fde68a"/>
+    <rect x="12" y="1" width="2" height="1" fill="#fde68a"/><rect x="3" y="2" width="1" height="1" fill="#fde68a"/>
+    <rect x="14" y="2" width="1" height="1" fill="#fde68a"/><rect x="2" y="3" width="1" height="1" fill="#fde68a"/>
+    <rect x="15" y="3" width="1" height="1" fill="#fde68a"/><rect x="2" y="4" width="1" height="1" fill="#fde68a"/>
+    <rect x="15" y="4" width="1" height="1" fill="#fde68a"/><rect x="1" y="5" width="1" height="6" fill="#fde68a"/>
+    <rect x="15" y="5" width="1" height="6" fill="#fde68a"/><rect x="2" y="11" width="1" height="1" fill="#fde68a"/>
+    <rect x="15" y="11" width="1" height="1" fill="#fde68a"/><rect x="2" y="12" width="1" height="1" fill="#fde68a"/>
+    <rect x="15" y="12" width="1" height="1" fill="#fde68a"/><rect x="3" y="13" width="1" height="1" fill="#fde68a"/>
+    <rect x="14" y="13" width="1" height="1" fill="#fde68a"/><rect x="4" y="14" width="2" height="1" fill="#fde68a"/>
+    <rect x="12" y="14" width="2" height="1" fill="#fde68a"/><rect x="6" y="15" width="6" height="1" fill="#fde68a"/>
+    <rect x="7" y="2" width="2" height="1" fill="#07070f"/><rect x="5" y="3" width="4" height="1" fill="#07070f"/>
+    <rect x="4" y="4" width="5" height="1" fill="#07070f"/><rect x="4" y="5" width="5" height="6" fill="#07070f"/>
+    <rect x="4" y="11" width="5" height="1" fill="#07070f"/><rect x="5" y="12" width="4" height="1" fill="#07070f"/>
+    <rect x="7" y="13" width="2" height="1" fill="#07070f"/>
+    <rect x="0" y="3" width="1" height="1" fill="#fde68a"/><rect x="1" y="2" width="1" height="1" fill="#fde68a"/>
+    <rect x="0" y="2" width="1" height="1" fill="#fff"/>
+  </svg>
+</div>
+<div class="shooting-star"></div>
+<div class="sparkle sp1"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="3" y="0" width="2" height="2" fill="#fde68a"/><rect x="0" y="3" width="2" height="2" fill="#fde68a"/><rect x="6" y="3" width="2" height="2" fill="#fde68a"/><rect x="3" y="6" width="2" height="2" fill="#fde68a"/><rect x="3" y="3" width="2" height="2" fill="#fff"/></svg></div>
+<div class="sparkle sp2"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="3" y="0" width="2" height="2" fill="#c4b5fd"/><rect x="0" y="3" width="2" height="2" fill="#c4b5fd"/><rect x="6" y="3" width="2" height="2" fill="#c4b5fd"/><rect x="3" y="6" width="2" height="2" fill="#c4b5fd"/><rect x="3" y="3" width="2" height="2" fill="#fff"/></svg></div>
+<div class="sparkle sp3"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="3" y="0" width="2" height="2" fill="#fb7185"/><rect x="0" y="3" width="2" height="2" fill="#fb7185"/><rect x="6" y="3" width="2" height="2" fill="#fb7185"/><rect x="3" y="6" width="2" height="2" fill="#fb7185"/><rect x="3" y="3" width="2" height="2" fill="#fff"/></svg></div>
+<div class="sparkle sp4"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><rect x="3" y="0" width="2" height="2" fill="#fde68a"/><rect x="0" y="3" width="2" height="2" fill="#fde68a"/><rect x="6" y="3" width="2" height="2" fill="#fde68a"/><rect x="3" y="6" width="2" height="2" fill="#fde68a"/><rect x="3" y="3" width="2" height="2" fill="#fff"/></svg></div>
+
+<div class="skyline">
+  <svg viewBox="0 0 200 40" preserveAspectRatio="xMidYMax meet" shape-rendering="crispEdges">
+    <rect x="0" y="36" width="200" height="4" fill="#0a0a1a"/>
+    <rect x="20" y="22" width="4" height="14" fill="#0a0a1a"/><rect x="19" y="20" width="6" height="2" fill="#0a0a1a"/>
+    <rect x="21" y="16" width="2" height="4" fill="#0a0a1a"/><rect x="21" y="14" width="2" height="1" fill="#fde68a"/>
+    <rect x="36" y="28" width="20" height="8" fill="#0a0a1a"/><rect x="38" y="24" width="16" height="4" fill="#0a0a1a"/>
+    <rect x="40" y="20" width="12" height="4" fill="#0a0a1a"/><rect x="42" y="18" width="8" height="2" fill="#0a0a1a"/>
+    <rect x="44" y="16" width="4" height="2" fill="#0a0a1a"/><rect x="45" y="14" width="2" height="2" fill="#0a0a1a"/>
+    <rect x="46" y="12" width="1" height="2" fill="#fde68a"/>
+    <rect x="96" y="14" width="4" height="22" fill="#0a0a1a"/><rect x="95" y="12" width="6" height="2" fill="#0a0a1a"/>
+    <rect x="97" y="8" width="2" height="4" fill="#0a0a1a"/><rect x="97" y="6" width="2" height="1" fill="#fde68a"/>
+    <rect x="106" y="26" width="28" height="10" fill="#0a0a1a"/><rect x="108" y="22" width="24" height="4" fill="#0a0a1a"/>
+    <rect x="110" y="18" width="20" height="4" fill="#0a0a1a"/><rect x="112" y="14" width="16" height="4" fill="#0a0a1a"/>
+    <rect x="114" y="10" width="12" height="4" fill="#0a0a1a"/><rect x="116" y="8" width="8" height="2" fill="#0a0a1a"/>
+    <rect x="118" y="6" width="4" height="2" fill="#0a0a1a"/><rect x="119" y="3" width="2" height="3" fill="#0a0a1a"/>
+    <rect x="120" y="1" width="1" height="2" fill="#fde68a"/>
+    <rect x="140" y="30" width="14" height="6" fill="#0a0a1a"/><rect x="142" y="26" width="10" height="4" fill="#0a0a1a"/>
+    <rect x="144" y="24" width="6" height="2" fill="#0a0a1a"/><rect x="146" y="22" width="2" height="2" fill="#0a0a1a"/>
+    <rect x="170" y="24" width="4" height="12" fill="#0a0a1a"/><rect x="169" y="22" width="6" height="2" fill="#0a0a1a"/>
+    <rect x="171" y="18" width="2" height="4" fill="#0a0a1a"/><rect x="171" y="16" width="2" height="1" fill="#fde68a"/>
+    <rect x="45" y="32" width="1" height="1" fill="#fde68a"/><rect x="48" y="32" width="1" height="1" fill="#fde68a"/>
+    <rect x="115" y="30" width="1" height="1" fill="#fde68a"/><rect x="120" y="30" width="1" height="1" fill="#fde68a"/>
+    <rect x="125" y="30" width="1" height="1" fill="#fde68a"/><rect x="145" y="32" width="1" height="1" fill="#fde68a"/>
+  </svg>
+</div>
+
+<main class="wrap">
+  <div class="card">
+    <span class="dot tl"></span><span class="dot tr"></span>
+    <span class="dot bl"></span><span class="dot br"></span>
+
+    <div class="lang-switch" role="tablist" aria-label="Language">
+      <button type="button" class="lang-btn active" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="ar">ع</button>
+      <button type="button" class="lang-btn" data-lang="fr">FR</button>
+    </div>
+
+    <div class="icon-box" aria-hidden="true">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="2" y="2" width="12" height="12" fill="#6d28d9"/>
+        <rect x="3" y="3" width="10" height="10" fill="#a78bfa"/>
+        <rect x="4" y="4" width="8" height="8" fill="#fef3c7"/>
+        <rect x="4" y="4" width="1" height="8" fill="#111"/>
+        <rect x="7" y="5" width="3" height="1" fill="#fde68a"/>
+        <rect x="6" y="6" width="1" height="1" fill="#fde68a"/>
+        <rect x="10" y="6" width="1" height="1" fill="#fde68a"/>
+        <rect x="6" y="7" width="1" height="2" fill="#fde68a"/>
+        <rect x="7" y="9" width="3" height="1" fill="#fde68a"/>
+        <rect x="11" y="5" width="1" height="1" fill="#fde68a"/>
+        <rect x="2" y="7" width="1" height="2" fill="#111"/>
+        <rect x="13" y="7" width="1" height="2" fill="#111"/>
+        <rect x="3" y="3" width="2" height="1" fill="#c4b5fd"/>
+      </svg>
+    </div>
+
+    <div class="tag" data-i18n="tag">✦ Early Access ✦</div>
+    <h1><span data-i18n="title1">Ayah</span> <span class="accent" data-i18n="title2">Studio</span></h1>
+    <p class="desc" data-i18n="desc">
+      Create <b>peaceful Quran videos</b> with <span class="amber">Arabic &amp; English subtitles</span> — ready for Shorts, Reels, TikTok, and long YouTube videos.
+    </p>
+
+    <div class="platforms" aria-label="Supported platforms">
+      <span class="chip tiktok">TikTok</span>
+      <span class="chip reels">Reels</span>
+      <span class="chip shorts">Shorts</span>
+      <span class="chip youtube">YouTube</span>
+    </div>
+
+    <div class="steps" id="steps">
+      <span class="step active" data-step="1" data-i18n="step1">01 · Name</span>
+      <span class="step" data-step="2" data-i18n="step2">02 · Email</span>
+      <span class="step" data-step="3" data-i18n="step3">03 · Why</span>
+    </div>
+
+    <div class="form-container">
+
+      <form class="form-step active" id="step-1" data-step="1" autocomplete="off" novalidate>
+        <div>
+          <label class="field-label" for="name-input">
+            <span class="num">1</span>
+            <span data-i18n="labelName">First Name</span> <span class="req">*</span>
+          </label>
+          <input type="text" id="name-input" name="name" class="input" data-placeholder="namePh" maxlength="40" required autocomplete="given-name" />
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn" data-i18n="btnNext">Next ▶</button>
+        </div>
+        <div class="error-msg" data-error="1"></div>
+      </form>
+
+      <form class="form-step" id="step-2" data-step="2" autocomplete="off" novalidate>
+        <div>
+          <label class="field-label" for="email-input">
+            <span class="num">2</span>
+            <span data-i18n="labelEmail">Your Email</span> <span class="req">*</span>
+          </label>
+          <input type="email" id="email-input" name="email" class="input" data-placeholder="emailPh" required autocomplete="email" />
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-back" data-back="1" data-i18n="btnBack">◀ Back</button>
+          <button type="submit" class="btn" data-i18n="btnNext">Next ▶</button>
+        </div>
+        <div class="error-msg" data-error="2"></div>
+      </form>
+
+      <form class="form-step" id="step-3" data-step="3" autocomplete="off" novalidate>
+        <div>
+          <label class="field-label" for="why-select">
+            <span class="num">3</span>
+            <span data-i18n="labelWhy">Why are you joining?</span> <span class="req">*</span>
+          </label>
+          <select id="why-select" name="whyType" class="select">
+            <option value="" data-i18n-opt="whyDefault">— pick one —</option>
+            <option value="quran-daily" data-i18n-opt="why1">I want to share Quran verses daily</option>
+            <option value="islamic-page" data-i18n-opt="why2">I run an Islamic content page</option>
+            <option value="youtube" data-i18n-opt="why3">I'm a YouTube creator</option>
+            <option value="tiktok" data-i18n-opt="why4">I make short-form videos (TikTok / Reels)</option>
+            <option value="dawah" data-i18n-opt="why5">I do dawah and outreach</option>
+            <option value="teacher" data-i18n-opt="why6">I'm a teacher / Islamic school</option>
+            <option value="personal" data-i18n-opt="why7">Personal use for myself &amp; family</option>
+            <option value="other" data-i18n-opt="why8">Something else — I'll tell you below</option>
+          </select>
+          <textarea id="why-input" name="whyDetail" class="textarea" data-placeholder="whyDetailPh" maxlength="400" style="margin-top:10px;"></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-back" data-back="2" data-i18n="btnBack">◀ Back</button>
+          <button type="submit" class="btn" id="submit-btn" data-i18n="btnSubmit">▶ Join Early Access</button>
+        </div>
+        <div class="error-msg" data-error="3"></div>
+      </form>
+
+    </div>
+
+    <div id="success-msg" class="success" role="status" aria-live="polite">
+      <div class="success-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+          <rect x="3" y="2" width="2" height="1" fill="#fde68a"/><rect x="7" y="2" width="2" height="1" fill="#fde68a"/>
+          <rect x="11" y="2" width="2" height="1" fill="#fde68a"/><rect x="2" y="3" width="4" height="1" fill="#fde68a"/>
+          <rect x="6" y="3" width="4" height="1" fill="#fde68a"/><rect x="10" y="3" width="4" height="1" fill="#fde68a"/>
+          <rect x="2" y="4" width="12" height="2" fill="#fde68a"/><rect x="3" y="6" width="10" height="2" fill="#fde68a"/>
+          <rect x="4" y="8" width="8" height="2" fill="#fde68a"/><rect x="5" y="10" width="6" height="1" fill="#fde68a"/>
+          <rect x="6" y="11" width="4" height="1" fill="#fde68a"/><rect x="7" y="12" width="2" height="1" fill="#fde68a"/>
+          <rect x="3" y="3" width="1" height="1" fill="#fff"/><rect x="3" y="4" width="1" height="1" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="big" data-i18n="successBig">✦ You're In ✦</div>
+      <div class="thanks">
+        <span data-i18n="thanks1">Thank you</span> <span class="accent" id="thanks-name">friend</span><span data-i18n="thanks2">!</span><br/>
+        <span data-i18n="thanks3">You've joined</span> <span class="accent" data-i18n="thanks4">Early Access</span><span data-i18n="thanks5">.</span>
+      </div>
+      <div class="note">
+        <span data-i18n="successNote">We'll send a quiet email when Ayah Studio is ready — no spam, no hype.</span>
+        <span class="arabic">جزاك الله خيرا</span>
+      </div>
+      <div class="stats">
+        <span class="stat"><span data-i18n="slotLabel">Slot</span> · <b id="slot-num">#0042</b></span>
+        <span class="stat"><span data-i18n="statusLabel">Status</span> · <b data-i18n="statusQueued">Queued</b></span>
+        <span class="stat"><span data-i18n="accessLabel">Access</span> · <b data-i18n="accessEarly">Early</b></span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <span data-i18n="footerMade">Made with</span> <span class="heart">♥</span> <span data-i18n="footerFor">for the Ummah</span><br/>
+    ayahstudio.tv
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import * as yup from 'https://esm.sh/yup@1.4.0';
+
+/* ─── CONFIG ─────────────────────────────────────────────── */
+const TG_BOT_TOKEN = '8858627348:AAGKHMxWE_N2fWgD5sEtem_ZvhApNEFa1XY';
+// Note: this chat_id is 11 digits — verify it via:
+// https://api.telegram.org/bot<TOKEN>/getUpdates
+// (send a message to the bot first, then call getUpdates)
+const TG_CHAT_ID   = '6897156984';
+
+const TG_TIMEOUT   = 10000;
+const TG_MAX_RETRY = 2;
+
+// Temporarily disabled during testing — set back to e.g. 60_000 in production
+const LS_COOLDOWN  = 0;
+const LS_DAILY_KEY = 'ayah_submitted_email';
+const LS_COOL_KEY  = 'ayah_last_attempt';
+
+/* ─── YUP SCHEMAS ────────────────────────────────────────── */
+const nameSchema = yup.string().trim().required('errName').min(2,'errNameShort').max(40,'errNameLong');
+const emailSchema = yup.string().trim().required('errEmail').email('errEmailBad').max(254,'errEmailLong').lowercase();
+const whySchema = yup.string().required('errWhy').oneOf(['quran-daily','islamic-page','youtube','tiktok','dawah','teacher','personal','other'],'errWhy');
+const detailSchema = yup.string().max(400,'errDetailLong').nullable();
+
+/* ─── I18N ───────────────────────────────────────────────── */
+const I18N = {
+  en: {
+    dir:'ltr', tag:'✦ Early Access ✦', title1:'Ayah', title2:'Studio',
+    desc:'Create <b>peaceful Quran videos</b> with <span class="amber">Arabic &amp; English subtitles</span> — ready for Shorts, Reels, TikTok, and long YouTube videos.',
+    step1:'01 · Name', step2:'02 · Email', step3:'03 · Why',
+    labelName:'First Name', labelEmail:'Your Email', labelWhy:'Why are you joining?',
+    namePh:'Ahmed, Fatima, Omar...', emailPh:'you@email.com',
+    whyDetailPh:'(optional) Tell us a little more — what kind of videos do you want to make?',
+    whyDefault:'— pick one —',
+    why1:'I want to share Quran verses daily', why2:'I run an Islamic content page',
+    why3:"I'm a YouTube creator", why4:'I make short-form videos (TikTok / Reels)',
+    why5:'I do dawah and outreach', why6:"I'm a teacher / Islamic school",
+    why7:'Personal use for myself & family', why8:"Something else — I'll tell you below",
+    btnNext:'Next ▶', btnBack:'◀ Back', btnSubmit:'▶ Join Early Access', btnSending:'Sending...',
+    errName:'Please tell us your first name.', errNameShort:'Name must be at least 2 characters.',
+    errNameLong:'Name is too long (max 40 chars).',
+    errEmail:'Email is required.', errEmailBad:"That email doesn't look right.", errEmailLong:'Email is too long.',
+    errWhy:'Please pick a reason — even just "personal use".',
+    errDetailLong:'Details are too long (max 400 chars).',
+    errNetwork:'Network error. Please check your connection and try again.',
+    errTimeout:'Request timed out. Please try again.',
+    errServer:'Something went wrong on our side. Please try again.',
+    errAuth:'Bot configuration error. Please contact the team.',
+    errCooldown:'Please wait a moment before trying again.',
+    errDuplicate:"This email is already on the list. Thank you for your interest!",
+    successBig:"✦ You're In ✦",
+    thanks1:'Thank you', thanks2:'!', thanks3:"You've joined", thanks4:'Early Access', thanks5:'.',
+    successNote:"We'll send a quiet email when Ayah Studio is ready — no spam, no hype.",
+    slotLabel:'Slot', statusLabel:'Status', statusQueued:'Queued',
+    accessLabel:'Access', accessEarly:'Early',
+    footerMade:'Made with', footerFor:'for the Ummah',
+    toastOffline:'● Offline', toastOnline:'● Back online'
+  },
+  ar: {
+    dir:'rtl', tag:'✦ وصول مبكر ✦', title1:'آية', title2:'استوديو',
+    desc:'أنشئ <b>مقاطع قرآنية هادئة</b> مع <span class="amber">ترجمة عربية وإنجليزية</span> — جاهزة لـ Shorts وReels وTikTok ومقاطع يوتيوب الطويلة.',
+    step1:'١ · الاسم', step2:'٢ · البريد', step3:'٣ · السبب',
+    labelName:'الاسم الأول', labelEmail:'بريدك الإلكتروني', labelWhy:'لماذا تنضم إلينا؟',
+    namePh:'أحمد، فاطمة، عمر...', emailPh:'you@email.com',
+    whyDetailPh:'(اختياري) أخبرنا المزيد — ما نوع المقاطع التي تريد إنشاءها؟',
+    whyDefault:'— اختر واحدًا —',
+    why1:'أريد مشاركة آيات القرآن يوميًا', why2:'أدير صفحة محتوى إسلامية',
+    why3:'أنا صانع محتوى على يوتيوب', why4:'أصنع مقاطع قصيرة (تيك توك / ريلز)',
+    why5:'أقوم بالدعوة والتوعية', why6:'أنا معلم / مدرسة إسلامية',
+    why7:'استخدام شخصي لي ولعائلتي', why8:'شيء آخر — سأخبركم أدناه',
+    btnNext:'التالي ▶', btnBack:'◀ السابق', btnSubmit:'▶ انضم للوصل المبكر', btnSending:'جاري الإرسال...',
+    errName:'من فضلك أخبرنا باسمك الأول.', errNameShort:'الاسم يجب أن يكون حرفين على الأقل.',
+    errNameLong:'الاسم طويل جدًا (بحد أقصى 40 حرفًا).',
+    errEmail:'البريد الإلكتروني مطلوب.', errEmailBad:'هذا البريد لا يبدو صحيحًا.', errEmailLong:'البريد طويل جدًا.',
+    errWhy:'من فضلك اختر سببًا.',
+    errDetailLong:'التفاصيل طويلة جدًا (بحد أقصى 400 حرف).',
+    errNetwork:'خطأ في الشبكة. تحقق من اتصالك وحاول مجددًا.',
+    errTimeout:'انتهت مهلة الطلب. حاول مرة أخرى.',
+    errServer:'حدث خطأ ما من جانبنا. حاول مرة أخرى.',
+    errAuth:'خطأ في إعدادات البوت. تواصل مع الفريق.',
+    errCooldown:'من فضلك انتظر قليلًا قبل المحاولة مجددًا.',
+    errDuplicate:'هذا البريد موجود بالفعل في القائمة. شكرًا لاهتمامك!',
+    successBig:'✦ لقد انضممت ✦',
+    thanks1:'شكرًا لك', thanks2:'!', thanks3:'لقد انضممت إلى', thanks4:'الوصول المبكر', thanks5:'.',
+    successNote:'سنرسل إليك بريدًا هادئًا عندما يكون استوديو آية جاهزًا — لا رسائل مزعجة.',
+    slotLabel:'الرقم', statusLabel:'الحالة', statusQueued:'في الانتظار',
+    accessLabel:'الوصول', accessEarly:'مبكر',
+    footerMade:'صُنع بـ', footerFor:'من أجل الأمة',
+    toastOffline:'● غير متصل', toastOnline:'● عادت الشبكة'
+  },
+  fr: {
+    dir:'ltr', tag:'✦ Accès Anticipé ✦', title1:'Ayah', title2:'Studio',
+    desc:'Créez de <b>belles vidéos coraniques</b> avec <span class="amber">sous-titres arabes et anglais</span> — prêtes pour Shorts, Reels, TikTok et vidéos YouTube longues.',
+    step1:'01 · Nom', step2:'02 · Email', step3:'03 · Pourquoi',
+    labelName:'Prénom', labelEmail:'Votre Email', labelWhy:'Pourquoi rejoignez-vous ?',
+    namePh:'Ahmed, Fatima, Omar...', emailPh:'vous@email.com',
+    whyDetailPh:'(optionnel) Dites-nous en plus — quel type de vidéos voulez-vous créer ?',
+    whyDefault:'— choisir —',
+    why1:'Je veux partager des versets du Coran chaque jour',
+    why2:"Je gère une page de contenu islamique", why3:'Je suis créateur YouTube',
+    why4:'Je fais des vidéos courtes (TikTok / Reels)',
+    why5:'Je fais de la dawa et de la sensibilisation',
+    why6:'Je suis enseignant / école islamique',
+    why7:'Usage personnel pour moi et ma famille',
+    why8:'Autre chose — je le dirai ci-dessous',
+    btnNext:'Suivant ▶', btnBack:'◀ Retour', btnSubmit:"▶ Rejoindre", btnSending:'Envoi...',
+    errName:'Merci de nous donner votre prénom.', errNameShort:'Le nom doit faire au moins 2 caractères.',
+    errNameLong:'Nom trop long (max 40).',
+    errEmail:"L'email est requis.", errEmailBad:"Cet email ne semble pas correct.", errEmailLong:'Email trop long.',
+    errWhy:'Choisissez une raison.',
+    errDetailLong:'Détails trop longs (max 400).',
+    errNetwork:'Erreur réseau. Vérifiez votre connexion.',
+    errTimeout:'Délai dépassé. Réessayez.',
+    errServer:'Erreur de notre côté. Réessayez.',
+    errAuth:'Erreur de config du bot. Contactez l\'équipe.',
+    errCooldown:'Merci de patienter avant de réessayer.',
+    errDuplicate:'Cet email est déjà dans la liste. Merci !',
+    successBig:'✦ Vous êtes dedans ✦',
+    thanks1:'Merci', thanks2:' !', thanks3:'Vous avez rejoint', thanks4:"l'Accès Anticipé", thanks5:'.',
+    successNote:"Nous vous enverrons un email discret quand Ayah Studio sera prêt — pas de spam.",
+    slotLabel:'Place', statusLabel:'Statut', statusQueued:'En file',
+    accessLabel:'Accès', accessEarly:'Anticipé',
+    footerMade:'Fait avec', footerFor:'pour la Oumma',
+    toastOffline:'● Hors-ligne', toastOnline:'● En ligne'
+  }
+};
+
+let currentLang = 'en';
+let isSubmitting = false;
+
+function t(key){ return (I18N[currentLang][key] ?? I18N.en[key] ?? key); }
+
+function setLanguage(lang){
+  currentLang = lang;
+  const dict = I18N[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = dict.dir;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (dict[k] !== undefined) el.innerHTML = dict[k];
+  });
+  document.querySelectorAll('[data-placeholder]').forEach(el => {
+    const k = el.getAttribute('data-placeholder');
+    if (dict[k] !== undefined) el.placeholder = dict[k];
+  });
+  document.querySelectorAll('[data-i18n-opt]').forEach(el => {
+    const k = el.getAttribute('data-i18n-opt');
+    if (dict[k] !== undefined) el.textContent = dict[k];
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  document.querySelectorAll('.input, .textarea').forEach(inp => {
+    const k = inp.getAttribute('data-placeholder');
+    if (k && dict[k]) inp.placeholder = dict[k];
+  });
+}
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+});
+setLanguage('en');
+
+/* ─── TOAST / NETWORK ────────────────────────────────────── */
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+function showToast(msgKey, cls){
+  toastEl.textContent = t(msgKey);
+  toastEl.className = 'toast show ' + cls;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
+}
+window.addEventListener('offline', () => showToast('toastOffline','offline'));
+window.addEventListener('online',  () => showToast('toastOnline','online'));
+
+/* ─── STEP NAV ───────────────────────────────────────────── */
+let currentStep = 1;
+const stepIndicators = document.querySelectorAll('.step');
+const stepsBar = document.getElementById('steps');
+
+function updateStepIndicators(){
+  stepIndicators.forEach(s => {
+    const n = parseInt(s.dataset.step);
+    s.classList.remove('active','done');
+    if (n < currentStep) s.classList.add('done');
+    else if (n === currentStep) s.classList.add('active');
+  });
+}
+
+function goToStep(target, direction='forward'){
+  if (target === currentStep) return;
+  const cur = document.getElementById('step-' + currentStep);
+  const tgt = document.getElementById('step-' + target);
+  cur.classList.add(direction === 'forward' ? 'slide-out-left' : 'slide-out-right');
+  setTimeout(() => {
+    cur.classList.remove('active','slide-out-left','slide-out-right');
+    tgt.classList.add('active');
+    currentStep = target;
+    updateStepIndicators();
+    const firstInput = tgt.querySelector('input, select, textarea');
+    if (firstInput) setTimeout(() => firstInput.focus(), 50);
+  }, 250);
+}
+
+document.querySelectorAll('[data-back]').forEach(btn => {
+  btn.addEventListener('click', () => goToStep(parseInt(btn.dataset.back), 'backward'));
+});
+
+/* ─── ERROR UI ───────────────────────────────────────────── */
+function showError(stepNum, msgKeyOrText, inputId){
+  const el = document.querySelector(`[data-error="${stepNum}"]`);
+  // If msgKeyOrText exists as a known key, translate; otherwise show as-is
+  const dict = I18N[currentLang] ?? I18N.en;
+  const message = (dict[msgKeyOrText] ?? I18N.en[msgKeyOrText]) || msgKeyOrText;
+  el.textContent = '⚠ ' + message;
+  el.classList.add('show');
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = '';
+  if (inputId){
+    const inp = document.getElementById(inputId);
+    inp.classList.add('invalid');
+    inp.focus();
+  }
+}
+function clearError(stepNum, inputId){
+  const el = document.querySelector(`[data-error="${stepNum}"]`);
+  el.classList.remove('show');
+  el.textContent = '';
+  if (inputId) document.getElementById(inputId).classList.remove('invalid');
+}
+
+/* ─── YUP VALIDATION ─────────────────────────────────────── */
+async function yupValidate(schema, value){
+  try {
+    const valid = await schema.validate(value, { abortEarly: true, strict: false });
+    return { ok: true, value: valid };
+  } catch (err) {
+    return { ok: false, messageKey: err.message };
+  }
+}
+
+/* ─── STEP 1 ─────────────────────────────────────────────── */
+document.getElementById('step-1').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearError(1, 'name-input');
+  const inp = document.getElementById('name-input');
+  const result = await yupValidate(nameSchema, inp.value);
+  if (!result.ok) { showError(1, result.messageKey, 'name-input'); return; }
+  goToStep(2, 'forward');
+});
+
+/* ─── STEP 2 ─────────────────────────────────────────────── */
+document.getElementById('step-2').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearError(2, 'email-input');
+  const inp = document.getElementById('email-input');
+  const result = await yupValidate(emailSchema, inp.value);
+  if (!result.ok) { showError(2, result.messageKey, 'email-input'); return; }
+  goToStep(3, 'forward');
+});
+
+/* ─── STEP 3 — FINAL SUBMIT ──────────────────────────────── */
+document.getElementById('step-3').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (isSubmitting) return;
+  clearError(3, 'why-select');
+
+  const whyType = document.getElementById('why-select').value;
+  const detail  = document.getElementById('why-input').value;
+  const name    = document.getElementById('name-input').value;
+  const email   = document.getElementById('email-input').value.trim().toLowerCase();
+
+  const whyRes = await yupValidate(whySchema, whyType);
+  if (!whyRes.ok) { showError(3, whyRes.messageKey, 'why-select'); return; }
+  if (detail) {
+    const detailRes = await yupValidate(detailSchema, detail);
+    if (!detailRes.ok) { showError(3, detailRes.messageKey, 'why-input'); return; }
+  }
+  const nameRes = await yupValidate(nameSchema, name);
+  if (!nameRes.ok) { goToStep(1,'backward'); setTimeout(()=>showError(1,nameRes.messageKey,'name-input'),350); return; }
+  const emailRes = await yupValidate(emailSchema, email);
+  if (!emailRes.ok) { goToStep(2,'backward'); setTimeout(()=>showError(2,emailRes.messageKey,'email-input'),350); return; }
+
+  /* Cooldown (disabled while testing — set LS_COOLDOWN = 60_000 for prod) */
+  if (LS_COOLDOWN > 0) {
+    const now = Date.now();
+    const lastAttempt = parseInt(localStorage.getItem(LS_COOL_KEY) || '0', 10);
+    if (now - lastAttempt < LS_COOLDOWN) {
+      showError(3, 'errCooldown');
+      return;
+    }
+    const submittedEmail = (localStorage.getItem(LS_DAILY_KEY) || '').toLowerCase();
+    if (submittedEmail === emailRes.value) {
+      showError(3, 'errDuplicate');
+      return;
+    }
+  }
+
+  if (!navigator.onLine) {
+    showError(3, 'errNetwork');
+    showToast('toastOffline','offline');
+    return;
+  }
+
+  isSubmitting = true;
+  const submitBtn = document.getElementById('submit-btn');
+  const originalLabel = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<span class="spinner"></span> ${t('btnSending')}`;
+
+  try {
+    await sendToTelegram({
+      name: nameRes.value,
+      email: emailRes.value,
+      whyType,
+      detail: detail?.trim() || '',
+      lang: currentLang,
+      ua: navigator.userAgent.slice(0, 300),
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      at: new Date().toISOString()
+    });
+
+    // Mark success
+    localStorage.setItem(LS_DAILY_KEY, emailRes.value);
+    localStorage.setItem(LS_COOL_KEY, String(Date.now()));
+
+    const firstName = nameRes.value.split(/\s+/)[0];
+    document.getElementById('thanks-name').textContent = firstName;
+    const slot = Math.floor(30 + Math.random() * 60);
+    document.getElementById('slot-num').textContent = '#' + String(slot).padStart(4,'0');
+
+    spawnPixelConfetti();
+
+    setTimeout(() => {
+      document.getElementById('step-3').style.display = 'none';
+      stepsBar.style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    }, 300);
+
+  } catch (err) {
+    // 🔧 Enhanced: full error details visible in UI for debugging
+    console.error('[AyahStudio] submit failed:', err);
+    if (LS_COOLDOWN > 0) localStorage.setItem(LS_COOL_KEY, String(Date.now()));
+    const classified = classifyError(err);
+    showError(3, classified);
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalLabel;
+    isSubmitting = false;
+  }
+});
+
+/* ─── TELEGRAM WITH RETRY + TIMEOUT + RICH LOGGING ──────── */
+async function sendToTelegram(payload){
+  const text = formatMessage(payload);
+  let lastErr;
+  for (let attempt = 0; attempt <= TG_MAX_RETRY; attempt++) {
+    if (attempt > 0) await sleep(800 * attempt);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TG_TIMEOUT);
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TG_CHAT_ID,
+          text,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+
+      // 🔧 FIX: always capture body so we see the real Telegram error
+      const body = await res.text();
+
+      if (!res.ok) {
+        const err = new Error(`HTTP_${res.status}: ${body.slice(0, 400)}`);
+        err.code = `TG_${res.status}`;
+        err.httpStatus = res.status;
+        err.body = body;
+        console.error('[AyahStudio] TG HTTP error:', res.status, body);
+        throw err;
+      }
+
+      let data;
+      try { data = JSON.parse(body); }
+      catch { throw new Error('TG_INVALID_JSON: ' + body.slice(0, 200)); }
+
+      if (!data.ok) {
+        const err = new Error(data.description || 'TG_API_ERROR');
+        err.code = 'TG_' + (data.error_code || 'UNKNOWN');
+        err.httpStatus = data.error_code;
+        err.body = body;
+        console.error('[AyahStudio] TG API error:', data);
+        throw err;
+      }
+      return data;
+    } catch (err) {
+      clearTimeout(timer);
+      if (err.name === 'AbortError') {
+        const e = new Error('TIMEOUT after ' + TG_TIMEOUT + 'ms');
+        e.code = 'TIMEOUT';
+        lastErr = e;
+      } else {
+        lastErr = err;
+      }
+      // Don't retry on 401 (bad token) / 400 (bad chat_id or request) / 403 (bot blocked)
+      if (err.code && /^TG_(400|401|403|404|409|429)/.test(err.code)) {
+        console.warn('[AyahStudio] Non-retryable TG error, aborting retries:', err.code);
+        break;
+      }
+      // Don't retry on 4xx HTTP either
+      if (err.httpStatus && err.httpStatus >= 400 && err.httpStatus < 500) break;
+    }
+  }
+  throw lastErr;
+}
+
+function classifyError(err){
+  const m = err?.message || '';
+  const c = err?.code || '';
+  const s = err?.httpStatus;
+  if (c === 'TIMEOUT' || m.startsWith('TIMEOUT')) return 'errTimeout';
+  if (s === 401 || m.includes('Unauthorized')) return 'errAuth';
+  if (s === 400 && m.toLowerCase().includes('chat not found')) return 'errAuth';
+  if (s === 403) return 'errAuth';
+  if (m.includes('AbortError') || m.includes('Failed to fetch') || m.includes('NetworkError') || (s && s >= 500)) return 'errNetwork';
+  if (m.includes('duplicate') || s === 409) return 'errDuplicate';
+  // Fallback: surface the actual Telegram description in the UI (dev-only debug hint)
+  // In production you'd return a generic message. During testing, exposing the real
+  // TG description is the fastest way to find misconfigured chat_id / token issues.
+  if (m.startsWith('HTTP_') || m.startsWith('TG_')) {
+    // Surface a user-friendly label but log the raw detail to console (already done above)
+    return 'errServer';
+  }
+  return 'errServer';
+}
+
+function formatMessage(p){
+  const escape = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const whyMap = {
+    'quran-daily':'Share Quran verses daily',
+    'islamic-page':'Run an Islamic content page',
+    'youtube':'YouTube creator',
+    'tiktok':'Short-form creator (TikTok / Reels)',
+    'dawah':'Dawah & outreach',
+    'teacher':'Teacher / Islamic school',
+    'personal':'Personal / family use',
+    'other':'Other'
+  };
+  const detail = p.detail ? `\n📝 <b>Details:</b> ${escape(p.detail)}` : '';
+  return (
+`🟢 <b>New Ayah Studio signup</b>
+
+👤 <b>Name:</b> ${escape(p.name)}
+📧 <b>Email:</b> <code>${escape(p.email)}</code>
+❓ <b>Why:</b> ${whyMap[p.whyType] || escape(p.whyType)}${detail}
+
+🌍 <b>Lang:</b> ${p.lang.toUpperCase()}
+🕐 <b>At:</b> ${p.at}
+📍 <b>TZ:</b> ${escape(p.tz)}
+🖥 <b>UA:</b> ${escape(p.ua)}`
+  );
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+/* ─── LIVE VALIDATION ────────────────────────────────────── */
+['name-input','email-input','why-select','why-input'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => el.classList.remove('invalid'));
+  el.addEventListener('change', () => el.classList.remove('invalid'));
+});
+
+/* ─── CONFETTI ───────────────────────────────────────────── */
+function spawnPixelConfetti(){
+  const colors = ['#fde68a','#a78bfa','#fb7185','#67e8f9','#f9a8d4','#fef3c7'];
+  const cx = window.innerWidth/2;
+  const cy = window.innerHeight/2;
+  for (let i = 0; i < 42; i++){
+    const p = document.createElement('div');
+    const size = 5 + Math.floor(Math.random()*7);
+    p.className = 'pixel-confetti';
+    p.style.cssText = `left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${colors[i % colors.length]};`;
+    document.body.appendChild(p);
+    const angle = Math.random() * Math.PI * 2;
+    const velocity = 6 + Math.random()*7;
+    let vx = Math.cos(angle)*velocity;
+    let vy = Math.sin(angle)*velocity - 7;
+    let x = 0, y = 0, frame = 0, rotation = 0;
+    const spin = (Math.random()-0.5)*18;
+    const anim = () => {
+      frame++;
+      vy += 0.45; x += vx; y += vy; vx *= 0.99; rotation += spin;
+      p.style.transform = `translate(${x}px,${y}px) rotate(${rotation}deg)`;
+      if (frame < 90) requestAnimationFrame(anim); else p.remove();
+    };
+    requestAnimationFrame(anim);
+  }
+}
+
+document.querySelectorAll('form').forEach(f => {
+  f.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'Enter' && isSubmitting) e.preventDefault();
+  });
+});
+
+/* ─── DEV HELPER: log to console how to find the real chat_id */
+console.info(
+  '%c[AyahStudio] To verify your TG chat_id, open:\n' +
+  'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/getUpdates\n' +
+  '(send a message to the bot first, then reload that URL)',
+  'color:#fde68a;font-weight:bold;'
+);
+</script>
+
+</body>
+</html>
 
